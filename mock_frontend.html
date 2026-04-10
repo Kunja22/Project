@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Manager App</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    /* Styling copied from our index.css */
+    :root {
+      --primary: #4F46E5;
+      --primary-hover: #4338CA;
+      --bg-color: #0F172A;
+      --card-bg: #1E293B;
+      --text-main: #F8FAFC;
+      --text-muted: #94A3B8;
+      --border-color: #334155;
+      --danger: #EF4444;
+      --success: #10B981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .app-container { min-height: 100vh; display: flex; flex-direction: column; }
+    .content { flex: 1; padding: 2rem; max-width: 1200px; margin: 0 auto; width: 100%; }
+
+    /* Navbar */
+    .navbar { display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; background-color: var(--card-bg); border-bottom: 1px solid var(--border-color); }
+    .navbar h1 { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
+    .nav-links { display: flex; gap: 1rem; }
+
+    .btn { padding: 0.5rem 1rem; border-radius: 6px; font-weight: 500; border: none; cursor: pointer; transition: all 0.2s ease; font-size: 0.9rem; color: white; display: inline-flex; align-items: center; gap: 0.5rem;}
+    .btn-primary { background-color: var(--primary); }
+    .btn-primary:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+    .btn-outline { background-color: transparent; border: 1px solid var(--border-color); color: var(--text-main); }
+    .btn-outline:hover { background-color: var(--border-color); }
+    .btn-danger { background-color: var(--danger); }
+
+    /* Dashboard */
+    .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+    .dashboard-header h2 { font-size: 2rem; }
+    .task-form { background-color: var(--card-bg); padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; border: 1px solid var(--border-color); }
+    .task-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+    .task-card { background-color: var(--card-bg); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border-color); transition: transform 0.2s; display: flex; flex-direction: column; }
+    .task-card:hover { transform: translateY(-3px); border-color: var(--primary); }
+    .task-card h3 { margin-bottom: 0.75rem; }
+    .task-card p { color: var(--text-muted); margin-bottom: 1rem; flex: 1; }
+    .task-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color); }
+    
+    .status-badge { padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; }
+    .status-pending { background: rgba(239, 68, 68, 0.2); color: #FCA5A5; }
+    .status-completed { background: rgba(16, 185, 129, 0.2); color: #6EE7B7; }
+
+    .form-group { margin-bottom: 1.2rem; }
+    .form-control { width: 100%; padding: 0.75rem 1rem; border-radius: 6px; background-color: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-main); outline: none; transition: border-color 0.2s; }
+    .form-control:focus { border-color: var(--primary); }
+  </style>
+
+  <!-- React & Babel for in-browser rendering -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    function App() {
+      const [tasks, setTasks] = useState([
+        { id: 1, title: 'Learn Docker', description: 'Understand containers and volumes.', status: 'completed' },
+        { id: 2, title: 'Build React UI', description: 'Create stunning dark mode components.', status: 'pending' },
+        { id: 3, title: 'Deploy App', description: 'Push the Docker containers to AWS.', status: 'pending' }
+      ]);
+      const [formData, setFormData] = useState({ title: '', description: '' });
+
+      const onChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+
+      const onSubmit = (e) => {
+        e.preventDefault();
+        if (!formData.title || !formData.description) return;
+        setTasks([...tasks, { id: Date.now(), title: formData.title, description: formData.description, status: 'pending' }]);
+        setFormData({ title: '', description: '' });
+      };
+
+      const toggleStatus = (id) => {
+        setTasks(tasks.map(t => t.id === id ? { ...t, status: t.status === 'pending' ? 'completed' : 'pending' } : t));
+      };
+
+      const deleteTask = (id) => {
+        setTasks(tasks.filter(t => t.id !== id));
+      };
+
+      return (
+        <div className="app-container">
+          <nav className="navbar">
+            <h1>TaskMaster</h1>
+            <div className="nav-links">
+              <span style={{ display: 'flex', alignItems: 'center', marginRight: '1rem' }}>Welcome, Demo User</span>
+              <button className="btn btn-outline" onClick={() => alert('Logged out')}>Logout</button>
+            </div>
+          </nav>
+          
+          <div className="content">
+            <div className="dashboard-header">
+              <h2>Your Tasks (Live Demo Preview)</h2>
+            </div>
+
+            <div className="task-form">
+              <h3 style={{ marginBottom: '1rem' }}>Create New Task</h3>
+              <form onSubmit={onSubmit}>
+                <div className="form-group" style={{ display: 'flex', gap: '1rem' }}>
+                  <input type="text" name="title" className="form-control" placeholder="Task Title" value={formData.title} onChange={onChange} style={{ flex: 1 }} />
+                  <input type="text" name="description" className="form-control" placeholder="Task Description" value={formData.description} onChange={onChange} style={{ flex: 2 }} />
+                  <button type="submit" className="btn btn-primary">Add Task</button>
+                </div>
+              </form>
+            </div>
+
+            <div className="task-grid">
+              {tasks.map(task => (
+                <div key={task.id} className="task-card">
+                  <h3>{task.title}</h3>
+                  <p>{task.description}</p>
+                  <div className="task-footer">
+                    <span className={`status-badge status-${task.status}`}>{task.status}</span>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button onClick={() => toggleStatus(task.id)} className={`btn ${task.status === 'pending' ? 'btn-outline' : 'btn-primary'}`} style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}>
+                          {task.status === 'pending' ? 'Complete' : 'Reopen'}
+                        </button>
+                        <button onClick={() => deleteTask(task.id)} className="btn btn-danger" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}>
+                          Delete
+                        </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
